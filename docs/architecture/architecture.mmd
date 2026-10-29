@@ -1,0 +1,54 @@
+---
+title: System Architecture - Self Improvement Loop
+config:
+  theme: base
+  themeVariables:
+    fontFamily: "Inter, system-ui, sans-serif"
+    primaryColor: "#F8FAFC"
+    primaryBorderColor: "#1E293B"
+    primaryTextColor: "#1E293B"
+    lineColor: "#64748B"
+    clusterBkg: "#EEF2FF"
+    clusterBorder: "#94A3B8"
+---
+flowchart TB
+    classDef edge     fill:#F59E0B,stroke:#1E293B,color:#1E293B,stroke-width:1px;
+    classDef core     fill:#6366F1,stroke:#1E293B,color:#ffffff,stroke-width:1px;
+    classDef data     fill:#10B981,stroke:#1E293B,color:#ffffff,stroke-width:1px;
+    classDef control  fill:#0EA5E9,stroke:#1E293B,color:#ffffff,stroke-width:1px;
+    classDef obs      fill:#CBD5E1,stroke:#1E293B,color:#1E293B,stroke-width:1px;
+
+    Client([Client]):::edge
+
+    subgraph Loop["Self-improvement loop (once at startup, repeated per iteration)"]
+        direction TB
+        Puzzles[(Solvable train split<br/>seeded, oracle-checked)]:::data
+        Sample["Sample rollouts<br/>k per puzzle at temperature"]:::core
+        Verify{"Verifier<br/>trace reaches target?"}:::control
+        Keep["Keep shortest verified trace"]:::core
+        Hint["Rationalize unsolved<br/>oracle shortest-path hint"]:::control
+        Clone["Behavior clone<br/>softmax gradient ascent"]:::core
+    end
+
+    Policy[(Log-linear policy weights)]:::data
+
+    subgraph Edge["Service layer (stdlib HTTP, stateless)"]
+        direction TB
+        Router["Router<br/>/health | /ready | /metrics | /solve | /evaluate | /history"]:::core
+        Validate["Validation<br/>bounded start, target, budget"]:::control
+    end
+
+    Greedy["Greedy decode<br/>most probable action path"]:::core
+    Result["Solution trace + verifier verdict"]:::obs
+
+    Puzzles --> Sample --> Verify
+    Verify -->|solved| Keep --> Clone
+    Verify -->|unsolved| Hint --> Clone
+    Clone -->|updated weights| Policy
+    Policy -.->|next iteration| Sample
+
+    Client -->|JSON request| Router --> Validate
+    Validate -->|start, target, budget| Greedy
+    Policy -.-> Greedy
+    Greedy -->|actions| Result
+    Result --> Router -->|JSON response| Client
