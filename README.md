@@ -112,6 +112,25 @@ puzzle contributes a trace from the start; here its oracle-shortest hints bias s
 multiply-heavy optimal paths, which marginally lowers the greedy asymptote. Full numbers are in
 [`docs/EVALUATION_REPORT.md`](docs/EVALUATION_REPORT.md).
 
+### Scale
+
+`benchmarks/scale.py` runs verifier-filtered self-training over progressively larger pools of
+synthetic puzzles (a reduced loop of 2 iterations and 4 samples per puzzle) and reports
+wall-clock time, throughput, peak traced memory (`tracemalloc`), and greedy pass@1 on a fixed
+held-out split. Throughput stays roughly flat (near-linear scaling), peak memory grows with the
+collected traces, and accuracy is stable because the linearly separable task is learned early.
+
+| training puzzles | seconds | puzzles/sec | peak MiB | greedy pass@1 |
+|---:|---:|---:|---:|---:|
+| 80 | 1.17 | 68 | 0.09 | 0.800 |
+| 160 | 2.19 | 73 | 0.10 | 0.800 |
+| 320 | 4.28 | 75 | 0.19 | 0.800 |
+
+Honest caveat: the data is synthetic, this is a pure-Python from-scratch implementation, and it
+is **not** benchmarked against compiled numerical libraries; wall-clock and throughput were
+measured on a shared development machine and will vary. Reproduce with
+`uv run python benchmarks/scale.py`.
+
 ## Demonstration
 
 ```text
