@@ -1,4 +1,4 @@
-"""A dependency-free HTTP service exposing the self-trained policy.
+"""A standard-library HTTP service exposing the self-trained policy.
 
 At startup the service runs the self-improvement loop once over the bundled train
 split and then answers solve and evaluation requests with the resulting policy. A

@@ -1,16 +1,14 @@
 <h1 align="center">Self Improvement Loop</h1>
 
 <p align="center">
-  <em>Recursive self-improvement by rejection-sampling self-training with a verifier, built from scratch: a policy that learns to solve reasoning puzzles from its own verified successes, with no human labels.</em>
+  <em>Rejection-sampling self-training with a verifier, built from scratch: a policy that learns to solve reasoning puzzles from its own verified successes, with no human labels.</em>
 </p>
 
 <p align="center">
-  <a href="https://github.com/adeoluo/self-improvement-loop/actions/workflows/ci.yml"><img alt="Continuous integration" src="https://github.com/adeoluo/self-improvement-loop/actions/workflows/ci.yml/badge.svg"></a>
-  <img alt="Coverage" src="https://img.shields.io/badge/coverage-97%25-brightgreen">
+  <a href="https://github.com/adeoluo/self-improvement-loop/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/adeoluo/self-improvement-loop/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/adeoluo/self-improvement-loop/releases"><img alt="Release" src="https://img.shields.io/github/v/release/adeoluo/self-improvement-loop"></a>
   <img alt="Python" src="https://img.shields.io/badge/python-3.11%20%7C%203.12-blue">
-  <img alt="Type checked" src="https://img.shields.io/badge/mypy-strict-blue">
-  <img alt="Runtime dependencies" src="https://img.shields.io/badge/runtime%20deps-0-brightgreen">
-  <img alt="License" src="https://img.shields.io/badge/license-MIT-green">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green"></a>
 </p>
 
 ---
@@ -24,7 +22,7 @@ is the idea behind self-taught reasoning and rejection-sampling fine-tuning, and
 reasoning models bootstrap on tasks with checkable answers.
 
 This project implements that loop from scratch on a small, fully verifiable reasoning task,
-with **zero runtime dependencies** and no automatic differentiation. The policy, its softmax
+with no automatic differentiation. The policy, its softmax
 gradient, the verifier, the oracle, and the self-training loop are all written out directly,
 so every part of the mechanism is inspectable. The point is not the task; it is the loop that
 turns a verifier into a learning signal, and the ablations that show which parts of that loop
@@ -33,7 +31,7 @@ actually matter.
 ## Architecture
 
 <p align="center">
-  <img src="docs/architecture/architecture.svg" alt="System architecture" width="900">
+  <img src="docs/architecture/architecture.svg" alt="Architecture diagram" width="860">
 </p>
 
 Each iteration samples several rollouts per training puzzle, the **verifier** keeps only the
@@ -42,7 +40,7 @@ hint, and the policy is updated by **behavior cloning** on the collected state-a
 Greedy accuracy on a held-out split is measured after every iteration. See the
 [ADRs](docs/adr/) for the key decisions.
 
-## The task
+### The task
 
 From a start value, reach a target within a step budget using a fixed action set
 (`+1 +2 +3 -1 -2 -3 *2 *3`). Every step is deterministic and every trace can be checked
@@ -50,7 +48,7 @@ exactly, which is what makes the task usable for self-training: a trace either l
 target or it does not. A breadth-first **oracle** defines solvability and supplies
 rationalization hints; the learned policy never calls it during ordinary rollouts.
 
-## The loop
+### The loop
 
 - **Generate** - sample `k` rollouts per puzzle from the current policy at a fixed temperature.
 - **Verify and filter** - keep only traces the verifier accepts; for a puzzle solved more than
@@ -126,12 +124,41 @@ collected traces, and accuracy is stable because the linearly separable task is 
 | 160 | 2.19 | 73 | 0.10 | 0.800 |
 | 320 | 4.28 | 75 | 0.19 | 0.800 |
 
-Honest caveat: the data is synthetic, this is a pure-Python from-scratch implementation, and it
+Honest caveat: the data is synthetic, this is a from-scratch Python implementation, and it
 is **not** benchmarked against compiled numerical libraries; wall-clock and throughput were
 measured on a shared development machine and will vary. Reproduce with
 `uv run python benchmarks/scale.py`.
 
-## Demonstration
+### Evaluation method
+
+Train and test splits are generated with seeded randomness and filtered to oracle-solvable
+puzzles; they are disjoint by construction. All runs are deterministic given a seed. Numbers
+above come from the default configuration (200 train, 120 test, 10 iterations, 12 samples per
+puzzle, budget 6) on CPU in seconds. Full method and tables:
+[`docs/EVALUATION_REPORT.md`](docs/EVALUATION_REPORT.md).
+
+## Quickstart
+
+```bash
+git clone https://github.com/adeoluo/self-improvement-loop.git && cd self-improvement-loop
+make setup                     # install dev tooling + pre-commit hooks
+make all                       # lint + type-check + test
+
+python -m self_improvement_loop train      # run the loop, print accuracy by iteration
+python -m self_improvement_loop evaluate   # held-out greedy accuracy and length overhead
+python -m self_improvement_loop solve 20 66 --budget 6   # solve one puzzle greedily
+python -m self_improvement_loop serve      # start the HTTP service on :8000
+```
+
+Inspect the ablations directly:
+
+```bash
+python -m self_improvement_loop train --no-rationalize   # drop oracle hints
+```
+
+## Usage
+
+### Demonstration
 
 ```text
 $ python -m self_improvement_loop solve 20 66 --budget 6
@@ -159,26 +186,7 @@ Final greedy: accuracy=0.7333 (88/120), mean_len=4.01, optimal_len=3.16
 pass@8: 0.9000
 ```
 
-## Quickstart
-
-```bash
-git clone https://github.com/adeoluo/self-improvement-loop.git && cd self-improvement-loop
-make setup                     # install dev tooling + pre-commit hooks
-make all                       # lint + type-check + test
-
-python -m self_improvement_loop train      # run the loop, print accuracy by iteration
-python -m self_improvement_loop evaluate   # held-out greedy accuracy and length overhead
-python -m self_improvement_loop solve 20 66 --budget 6   # solve one puzzle greedily
-python -m self_improvement_loop serve      # start the HTTP service on :8000
-```
-
-Inspect the ablations directly:
-
-```bash
-python -m self_improvement_loop train --no-rationalize   # drop oracle hints
-```
-
-## HTTP service
+### HTTP service
 
 A standard-library HTTP service trains once at startup, then answers solve and evaluation
 requests. The routing logic is a pure function, tested without opening a socket.
@@ -212,13 +220,23 @@ and p95 0.09 ms** on one CPU, since work per request is bounded by the step budg
 - **Rationalization via an oracle** - an exact breadth-first solver supplies hints for puzzles
   the policy cannot yet solve, which is the honest, bounded analogue of a stronger teacher.
 
-## Evaluation
+## Testing
 
-Train and test splits are generated with seeded randomness and filtered to oracle-solvable
-puzzles; they are disjoint by construction. All runs are deterministic given a seed. Numbers
-above come from the default configuration (200 train, 120 test, 10 iterations, 12 samples per
-puzzle, budget 6) on CPU in seconds. Full method and tables:
-[`docs/EVALUATION_REPORT.md`](docs/EVALUATION_REPORT.md).
+```bash
+make lint        # ruff format --check and ruff check
+make type        # mypy src (strict)
+make test        # pytest
+make coverage    # pytest with an 80% coverage gate
+```
+
+The suite in `tests/` has 39 tests:
+
+- `test_environment.py`: action semantics, the verifier (wrong final value, over budget, unknown action, out-of-bounds intermediate), and the breadth-first oracle (minimal solutions, unsolvable puzzles).
+- `test_policy.py`: the log-linear policy, including uniform initialization, valid-action masking, probabilities summing to one, and a behavior-cloning step raising the probability of the cloned action.
+- `test_learning.py`: seeded, disjoint splits, rationalized traces, determinism of the loop, self-training improving greedy accuracy, unfiltered cloning underperforming verified filtering, and pass@k monotonic in k.
+- `test_service_cli.py`: HTTP routes through the pure routing function (no socket), input validation, 404 handling, metrics, and the CLI.
+
+CI (`.github/workflows/ci.yml`) runs format, lint, type check, and the coverage-gated tests on Python 3.11 and 3.12, then builds the package and the Docker image. CodeQL runs in `codeql.yml`.
 
 ## Responsible AI
 
@@ -246,4 +264,4 @@ puzzle, budget 6) on CPU in seconds. Full method and tables:
 
 ## License
 
-[MIT](LICENSE)
+Released under the [MIT License](LICENSE).

@@ -28,7 +28,7 @@
 - **No code execution:** inputs are integers; there is no evaluation of user-supplied strings.
 
 ## Supply chain
-- Zero runtime dependencies. Development tooling is pinned via `uv.lock`. CodeQL and dependency
+- No third-party runtime packages. Development tooling is pinned via `uv.lock`. CodeQL and dependency
   scanning run in CI.
 
 ## Residual risk

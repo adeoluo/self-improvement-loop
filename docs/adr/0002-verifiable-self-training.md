@@ -22,6 +22,6 @@ rather than memorization.
 
 ## Consequences
 - The verifier and oracle are exact, so filtering and rationalization have no label noise.
-- The whole mechanism fits in a few readable modules with no external dependencies.
+- The whole mechanism fits in a few readable modules.
 - The absolute accuracy numbers describe a toy task; the claims are about the loop and its
   ablations, not about state-of-the-art reasoning. This is stated plainly in the README.

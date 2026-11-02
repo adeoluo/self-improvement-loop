@@ -97,7 +97,7 @@ def measure(
 
 
 def main() -> None:
-    print("Synthetic arithmetic puzzles; a pure-Python, from-scratch training loop.")
+    print("Synthetic arithmetic puzzles; a from-scratch Python training loop.")
     print("Wall-clock is not competitive with compiled numerical libraries.")
     print(f"Self-training for {_ITERATIONS} iterations per workload; accuracy is greedy pass@1.\n")
 
