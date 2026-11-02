@@ -5,58 +5,44 @@ flowchart LR
     classDef control  fill:#0EA5E9,stroke:#1E293B,color:#ffffff,stroke-width:1px;
     classDef obs      fill:#CBD5E1,stroke:#1E293B,color:#1E293B,stroke-width:1px;
 
-    CLI(["CLI<br/>train | evaluate | solve | serve"]):::edge
-    Client(["HTTP client"]):::edge
-
-    subgraph Task["Task and config (seeded, verifiable)"]
+    subgraph Interfaces["Interfaces"]
         direction TB
-        Trainer["SelfTrainer config<br/>iterations, k samples, seed"]:::control
-        Env["Puzzle environment<br/>8 actions, step budget"]:::core
+        CLI["CLI<br/>train, evaluate, solve"]:::edge
+        Client(["HTTP client"]):::edge
+        Router["HTTP router<br/>/solve /history"]:::core
+        Validate["Validation<br/>start, target, budget"]:::control
+        CLI ~~~ Client --> Router --> Validate
+    end
+
+    subgraph Task["Task and data (seeded)"]
+        direction TB
+        Env["Puzzle environment<br/>8 actions, budget"]:::core
         Oracle["BFS oracle<br/>shortest solution"]:::core
-        Splits[("Oracle-filtered splits<br/>200 train, 120 test puzzles")]:::data
+        Splits[("Disjoint splits<br/>200 train, 120 test")]:::data
+        Env ~~~ Oracle --> Splits
     end
 
-    subgraph Loop["Self-improvement loop (per iteration)"]
+    subgraph Loop["Self-improvement loop"]
         direction TB
-        Sample["Sampled rollouts<br/>k per puzzle at temperature"]:::core
-        Verify{{"Verifier filter<br/>keep shortest solved trace"}}:::control
-        Rationalize["Rationalization<br/>oracle-hinted rollout when no sample solves"]:::core
+        Sample["Sampled rollouts<br/>k per puzzle"]:::core
+        Verify{{"Verifier<br/>keep shortest solved"}}:::control
+        Rationalize["Rationalization<br/>oracle-hinted trace"]:::core
         Clone["Behavior cloning<br/>exact softmax gradient"]:::core
-        Policy[("Log-linear policy<br/>weights over state-action features")]:::data
+        Policy[("Log-linear policy")]:::data
+        Sample --> Verify --> Clone --> Policy
+        Verify -->|unsolved| Rationalize --> Clone
     end
 
-    subgraph Serve["Interfaces (stdlib HTTP, trained at startup)"]
+    subgraph Obs["Evaluation and observability"]
         direction TB
-        Router["Router<br/>/health | /ready | /evaluate | /history | /solve"]:::core
-        Validate["Validation<br/>integer start, target, budget up to 12"]:::control
-        Greedy["Greedy decode<br/>actions + verified flag"]:::core
+        Evaluate["Held-out evaluation<br/>greedy accuracy, pass@k"]:::obs
+        History["Iteration history<br/>accuracy per iteration"]:::obs
+        Solve["Solve response<br/>greedy, verified"]:::obs
+        Metrics["Route metrics<br/>Prometheus text"]:::obs
+        Evaluate --> History
+        History ~~~ Solve ~~~ Metrics
     end
 
-    subgraph Eval["Evaluation and observability"]
-        direction TB
-        Evaluate["Held-out evaluation<br/>greedy accuracy, pass@k, length overhead"]:::obs
-        History["Iteration history<br/>accuracy, sampled vs hinted, NLL"]:::obs
-        Metrics["Route metrics<br/>Prometheus GET /metrics"]:::obs
-    end
-
-    CLI -->|train, evaluate, solve| Trainer
-    Trainer -->|each iteration| Sample
-    Splits -->|train puzzles| Sample
-    Splits -->|unsolved puzzles| Rationalize
-    Oracle -.->|hint| Rationalize
-    Policy -.->|current policy| Sample
-    Sample -->|traces| Verify
-    Env -.->|exact check| Verify
-    Verify -->|solved traces| Clone
-    Rationalize -->|recovered traces| Clone
-    Clone -->|updated weights| Policy
-    Policy -->|greedy rollouts| Evaluate
-    Splits -.->|test puzzles| Evaluate
-    Trainer -.->|per-iteration reports| History
-    Client -->|JSON request| Router
-    Router -->|POST /solve| Validate
-    Validate -->|puzzle| Greedy
-    Policy -.->|trained weights| Greedy
-    Router -->|GET /evaluate| Evaluate
-    Router -->|GET /history| History
-    Router -.-> Metrics
+    Interfaces -->|train, solve| Loop
+    Task -->|puzzles, hints| Loop
+    Loop -->|trained policy| Obs
