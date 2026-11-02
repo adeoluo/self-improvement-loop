@@ -1,4 +1,4 @@
-flowchart TD
+flowchart LR
     classDef edge     fill:#F59E0B,stroke:#1E293B,color:#1E293B,stroke-width:1px;
     classDef core     fill:#6366F1,stroke:#1E293B,color:#ffffff,stroke-width:1px;
     classDef data     fill:#10B981,stroke:#1E293B,color:#ffffff,stroke-width:1px;
@@ -8,19 +8,19 @@ flowchart TD
     CLI(["CLI<br/>train | evaluate | solve | serve"]):::edge
     Client(["HTTP client"]):::edge
 
-    subgraph Task["Task and data (seeded, verifiable)"]
+    subgraph Task["Task and config (seeded, verifiable)"]
         direction TB
+        Trainer["SelfTrainer config<br/>iterations, k samples, seed"]:::control
         Env["Puzzle environment<br/>8 actions, step budget"]:::core
         Oracle["BFS oracle<br/>shortest solution"]:::core
-        Splits[("Disjoint splits<br/>200 train, 120 test puzzles")]:::data
+        Splits[("Oracle-filtered splits<br/>200 train, 120 test puzzles")]:::data
     end
 
     subgraph Loop["Self-improvement loop (per iteration)"]
         direction TB
-        Trainer["SelfTrainer<br/>iterations, samples per puzzle, seed"]:::control
         Sample["Sampled rollouts<br/>k per puzzle at temperature"]:::core
         Verify{{"Verifier filter<br/>keep shortest solved trace"}}:::control
-        Rationalize["Rationalization<br/>oracle-hinted rollout"]:::core
+        Rationalize["Rationalization<br/>oracle-hinted rollout when no sample solves"]:::core
         Clone["Behavior cloning<br/>exact softmax gradient"]:::core
         Policy[("Log-linear policy<br/>weights over state-action features")]:::data
     end
@@ -40,21 +40,19 @@ flowchart TD
     end
 
     CLI -->|train, evaluate, solve| Trainer
-    Env -.->|step rules| Oracle
-    Oracle -->|solvability filter| Splits
-    Splits -->|train puzzles| Trainer
     Trainer -->|each iteration| Sample
+    Splits -->|train puzzles| Sample
+    Splits -->|unsolved puzzles| Rationalize
+    Oracle -.->|hint| Rationalize
     Policy -.->|current policy| Sample
     Sample -->|traces| Verify
     Env -.->|exact check| Verify
-    Verify -->|solved| Clone
-    Verify -->|unsolved| Rationalize
-    Oracle -.->|hint| Rationalize
-    Rationalize -->|recovered trace| Clone
+    Verify -->|solved traces| Clone
+    Rationalize -->|recovered traces| Clone
     Clone -->|updated weights| Policy
     Policy -->|greedy rollouts| Evaluate
     Splits -.->|test puzzles| Evaluate
-    Evaluate -->|after every iteration| History
+    Trainer -.->|per-iteration reports| History
     Client -->|JSON request| Router
     Router -->|POST /solve| Validate
     Validate -->|puzzle| Greedy
