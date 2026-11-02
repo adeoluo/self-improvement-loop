@@ -34,11 +34,16 @@ actually matter.
   <img src="docs/architecture/architecture.svg" alt="Architecture diagram" width="860">
 </p>
 
-Each iteration samples several rollouts per training puzzle, the **verifier** keeps only the
-traces that reach the target, unsolved puzzles are recovered with an oracle **rationalization**
-hint, and the policy is updated by **behavior cloning** on the collected state-action pairs.
-Greedy accuracy on a held-out split is measured after every iteration. See the
-[ADRs](docs/adr/) for the key decisions.
+<sub>Legend: amber = entry points and external systems, indigo = core logic, green = data and state, blue = validation and control, grey = observability and outputs.</sub>
+
+The oracle filters seeded puzzles into disjoint train and test splits. Each iteration samples
+several rollouts per training puzzle, the **verifier** keeps only the shortest trace that
+reaches the target, unsolved puzzles are recovered with an oracle **rationalization** hint, and
+the policy is updated by **behavior cloning** on the collected state-action pairs. Greedy
+accuracy on the held-out split is measured after every iteration and kept in the history. The
+HTTP service trains once at startup, then validates and greedily solves puzzles, serves the
+evaluation and history, and records per-route metrics. See the [ADRs](docs/adr/) for the key
+decisions.
 
 ### The task
 
