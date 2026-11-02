@@ -224,6 +224,18 @@ Solving a problem with the verifier, then the evaluation.
   <img src="docs/demo/solve.gif" alt="Solving a problem with the verifier, then the evaluation" width="860">
 </p>
 
+The HTTP service solving a puzzle, then the accuracy per self-improvement iteration.
+
+<p align="center">
+  <img src="docs/demo/http.gif" alt="The HTTP service solving a puzzle, then the accuracy per self-improvement iteration" width="860">
+</p>
+
+Ten rounds of rejection-sampling self-training, with accuracy per round.
+
+<p align="center">
+  <img src="docs/demo/train.gif" alt="Ten rounds of rejection-sampling self-training, with accuracy per round" width="860">
+</p>
+
 ## Design decisions
 
 - **A verifiable task, not a language model** - the loop is the subject, so the task is kept
