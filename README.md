@@ -214,6 +214,16 @@ Under a concurrent stress benchmark (`uv run python benchmarks/stress.py`, 5000 
 workers), the `/solve` handler sustains roughly **14,000 requests/second** with **p50 0.07 ms
 and p95 0.09 ms** on one CPU, since work per request is bounded by the step budget.
 
+### Demos
+
+Recorded from real runs with [vhs](https://github.com/charmbracelet/vhs); each tape is in `docs/demo/`.
+
+Solving a problem with the verifier, then the evaluation.
+
+<p align="center">
+  <img src="docs/demo/solve.gif" alt="Solving a problem with the verifier, then the evaluation" width="860">
+</p>
+
 ## Design decisions
 
 - **A verifiable task, not a language model** - the loop is the subject, so the task is kept
