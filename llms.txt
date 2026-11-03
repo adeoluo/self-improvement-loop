@@ -1,0 +1,37 @@
+# Self Improvement Loop
+
+> Rejection-sampling self-training with a verifier, built from scratch: a policy that learns to solve reasoning puzzles from its own verified successes, with no human labels.
+
+Languages: Python. License: MIT. Source: https://github.com/adeoluo/self-improvement-loop
+
+## Docs
+
+- [README](https://github.com/adeoluo/self-improvement-loop/blob/main/README.md): motivation, architecture, results, quickstart, usage, design decisions, testing, responsible ai, limitations, roadmap
+- [AGENTS.md](https://github.com/adeoluo/self-improvement-loop/blob/main/AGENTS.md): layout, commands and conventions for changing the code
+- [Architecture diagram](https://github.com/adeoluo/self-improvement-loop/blob/main/docs/architecture/architecture.mmd): Mermaid source of the component diagram
+- [Case Study - What the ablations show](https://github.com/adeoluo/self-improvement-loop/blob/main/docs/CASE_STUDY.md)
+- [Data Card - Self Improvement Loop](https://github.com/adeoluo/self-improvement-loop/blob/main/docs/DATA_CARD.md)
+- [Definition of Done](https://github.com/adeoluo/self-improvement-loop/blob/main/docs/DEFINITION_OF_DONE.md)
+- [Evaluation Report - Self Improvement Loop](https://github.com/adeoluo/self-improvement-loop/blob/main/docs/EVALUATION_REPORT.md)
+- [Model / System Card - Self Improvement Loop](https://github.com/adeoluo/self-improvement-loop/blob/main/docs/MODEL_CARD.md)
+- [Operations - Self Improvement Loop](https://github.com/adeoluo/self-improvement-loop/blob/main/docs/OPERATIONS.md)
+- [Scaling Notes - Self Improvement Loop](https://github.com/adeoluo/self-improvement-loop/blob/main/docs/SCALING.md)
+- [Threat Model - Self Improvement Loop](https://github.com/adeoluo/self-improvement-loop/blob/main/docs/THREAT_MODEL.md)
+- [ADR-0001: Record architecture decisions](https://github.com/adeoluo/self-improvement-loop/blob/main/docs/adr/0001-record-architecture-decisions.md)
+- [ADR-0002: A verifiable task for self-training, not a language model](https://github.com/adeoluo/self-improvement-loop/blob/main/docs/adr/0002-verifiable-self-training.md)
+- [ADR-0003: A log-linear policy with an explicit behavior-cloning gradient](https://github.com/adeoluo/self-improvement-loop/blob/main/docs/adr/0003-log-linear-policy.md)
+- [ADR-NNNN: <short title>](https://github.com/adeoluo/self-improvement-loop/blob/main/docs/adr/template.md)
+- [Changelog](https://github.com/adeoluo/self-improvement-loop/blob/main/CHANGELOG.md): release history
+
+## Source
+
+- [src/self_improvement_loop/__init__.py](https://github.com/adeoluo/self-improvement-loop/blob/main/src/self_improvement_loop/__init__.py): Self Improvement Loop - recursive self-training with a verifier, from scratch.
+- [src/self_improvement_loop/cli.py](https://github.com/adeoluo/self-improvement-loop/blob/main/src/self_improvement_loop/cli.py): Command line interface for the self-improvement loop.
+- [src/self_improvement_loop/data.py](https://github.com/adeoluo/self-improvement-loop/blob/main/src/self_improvement_loop/data.py): Deterministic puzzle generation and fixed train and test splits.
+- [src/self_improvement_loop/environment.py](https://github.com/adeoluo/self-improvement-loop/blob/main/src/self_improvement_loop/environment.py): The reasoning task, its verifier, and an exact oracle solver.
+- [src/self_improvement_loop/evaluation.py](https://github.com/adeoluo/self-improvement-loop/blob/main/src/self_improvement_loop/evaluation.py): Evaluation: greedy accuracy, sampled pass@k, and solution quality.
+- [src/self_improvement_loop/generation.py](https://github.com/adeoluo/self-improvement-loop/blob/main/src/self_improvement_loop/generation.py): Trace generation: sampled rollouts, greedy decoding, and rationalization.
+- [src/self_improvement_loop/observability.py](https://github.com/adeoluo/self-improvement-loop/blob/main/src/self_improvement_loop/observability.py): In-process request metrics for the HTTP service (Prometheus text exposition).
+- [src/self_improvement_loop/policy.py](https://github.com/adeoluo/self-improvement-loop/blob/main/src/self_improvement_loop/policy.py): A log-linear policy over actions, trained from scratch by behavior cloning.
+- [src/self_improvement_loop/self_improvement.py](https://github.com/adeoluo/self-improvement-loop/blob/main/src/self_improvement_loop/self_improvement.py): The self-improvement loop: generate, verify, filter, and clone.
+- [src/self_improvement_loop/service.py](https://github.com/adeoluo/self-improvement-loop/blob/main/src/self_improvement_loop/service.py): A standard-library HTTP service exposing the self-trained policy.
