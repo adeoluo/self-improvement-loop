@@ -12,6 +12,7 @@ Rejection-sampling self-training with a verifier, built from scratch: a policy t
 - `benchmarks/`: benchmark scripts and recorded results
 - `docker-compose.yml`: local container setup
 - `docs/`: documentation, architecture diagram source and render, design records
+- `scripts/`: maintenance scripts (release, assets, data)
 - `src/`: library and service source
 - `tests/`: test suite
 

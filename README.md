@@ -7,7 +7,7 @@
 <p align="center">
   <a href="https://github.com/adeoluo/self-improvement-loop/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/adeoluo/self-improvement-loop/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://github.com/adeoluo/self-improvement-loop/releases"><img alt="Release" src="https://img.shields.io/github/v/release/adeoluo/self-improvement-loop"></a>
-  <img alt="Python" src="https://img.shields.io/badge/python-3.11%20%7C%203.12-blue">
+  <img alt="Python" src="https://img.shields.io/badge/python-3.12%20%7C%203.13%20%7C%203.14%20%7C%203.15-blue">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green"></a>
 </p>
 
@@ -263,7 +263,7 @@ The suite in `tests/` has 39 tests:
 - `test_learning.py`: seeded, disjoint splits, rationalized traces, determinism of the loop, self-training improving greedy accuracy, unfiltered cloning underperforming verified filtering, and pass@k monotonic in k.
 - `test_service_cli.py`: HTTP routes through the pure routing function (no socket), input validation, 404 handling, metrics, and the CLI.
 
-CI (`.github/workflows/ci.yml`) runs format, lint, type check, and the coverage-gated tests on Python 3.11 and 3.12, then builds the package and the Docker image. CodeQL runs in `codeql.yml`.
+CI (`.github/workflows/ci.yml`) runs format, lint, type check, and the coverage-gated tests on Python 3.12, 3.13, 3.14 and 3.15, then builds the package and the Docker image. CodeQL runs in `codeql.yml`.
 
 ## Responsible AI
 
